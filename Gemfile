@@ -73,3 +73,7 @@ end
 
 gem "devise"
 gem 'jquery-rails'
+
+gem "dockerfile-rails", ">= 1.5", :group => :development
+
+gem "redis", "~> 5.0"
