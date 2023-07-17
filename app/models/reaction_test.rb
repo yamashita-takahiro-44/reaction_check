@@ -1,0 +1,2 @@
+class ReactionTest < ApplicationRecord
+end

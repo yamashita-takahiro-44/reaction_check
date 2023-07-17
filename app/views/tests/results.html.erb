@@ -1,0 +1,29 @@
+<h1>反応速度テストの結果</h1>
+
+<% if @reaction_tests.last %>
+  <% test = @reaction_tests.last %>
+  <li>反応速度： <%= (frames = (test.reaction_time / 16.67).round) %>フレーム</li>
+  <% case frames
+     when 0..12
+       message = "あなたは反応の神です！"
+     when 13..20
+       message = "素晴らしい反応速度です！対空もよく出るでしょう。是非格ゲーしましょう。"
+     when 21..25
+       message = "まあまあの反応速度ですね。中段攻撃が立てたり立てなかったりします。"
+     when 26..30
+       message = "ちょっと反応が遅いです。スト6ではインパクトでボラれます。"
+     else
+       message = "あなたは反応が遅いですね。"
+     end %>
+  <p><%= message %></p>
+<% else %>
+  <p>まだテスト結果はありません。</p>
+<% end %>
+
+
+<% frames = (test.reaction_time / 16.67).round %>
+<% tweet_text = URI.encode_www_form_component("あなたの反応速度は#{frames}フレームです！") %>
+
+<%= link_to 'ツイート', "https://twitter.com/share?url=https://kusoapuri/&text=#{tweet_text}", class: 'btn btn-info fa-brands fa-twitter fa-2xl text-twitter', target: '_blank' %>
+
+<%= link_to 'リトライ', root_path %>

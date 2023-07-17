@@ -1,0 +1,75 @@
+<h1>反応速度テスト</h1>
+
+<p>反応速度を測定するアプリです。テスト開始を押すと、下に赤か青の四角が表示されます。</p>
+<p>赤なら左矢印、青なら下矢印ボタンを押してください。5回挑戦すると平均値が表示されます。</p>
+
+<button id="start-button">テスト開始</button>
+
+<div id="color-box" style="width: 100px; height: 100px; background-color: white;"></div>
+
+<div id="result">結果：</div>
+
+<!-- 結果を表示するページへのリンクを追加 -->
+<p><a href="/results">テスト結果を確認する</a></p>
+
+<script>
+  var colorBox = document.getElementById('color-box');
+  var resultDiv = document.getElementById('result');
+  var reactionTimes = [];
+  
+  document.getElementById('start-button').addEventListener('click', startTest);
+  
+  function startTest() {
+    var startDelay = Math.random() * 5000 + 2000; // 2-7 seconds
+    var colorChangeTime;
+
+    setTimeout(function() {
+      var colorChange = Math.random() > 0.5;
+      if (colorChange) {
+        colorBox.style.backgroundColor = 'red';
+      } else {
+        colorBox.style.backgroundColor = 'blue';
+      }
+      colorChangeTime = new Date().getTime();
+    }, startDelay);
+
+    function handleKeydown(e) {
+  if (colorChangeTime) {
+    var reactionTime;
+    if ((colorBox.style.backgroundColor == 'red' && e.key == 'ArrowLeft') || (colorBox.style.backgroundColor == 'blue' && e.key == 'ArrowDown')) {
+      reactionTime = new Date().getTime() - colorChangeTime;
+      reactionTimes.push(reactionTime);
+      colorChangeTime = null;
+      colorBox.style.backgroundColor = 'white';
+      
+      if (reactionTimes.length == 5) {
+        var sum = reactionTimes.reduce(function(a, b) { return a + b; }, 0);
+        var avg = sum / reactionTimes.length;
+        resultDiv.textContent = '平均反応時間：' + avg + 'ms';
+        reactionTimes = [];
+        $.ajax({
+          url: '/save_result',
+          method: 'POST',
+          data: {
+            reaction_time: avg
+          }
+        });
+      } else {
+        startTest();
+      }
+    } else {
+      reactionTime = 1000;
+      resultDiv.textContent = '間違ったボタンを押しました！ 反応時間は1000msとして計算します。';
+      document.addEventListener('keydown', handleKeydown, { once: true });
+    }
+  } else {
+    resultDiv.textContent = 'まだ色が変わっていません！ キーを押すのは色が変わった後です。';
+    document.addEventListener('keydown', handleKeydown, { once: true });
+  }
+}
+
+document.getElementById('start-button').addEventListener('click', startTest);
+document.addEventListener('keydown', handleKeydown, { once: true });
+
+  }
+</script>
