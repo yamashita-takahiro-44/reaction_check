@@ -16,6 +16,7 @@
   var colorBox = document.getElementById('color-box');
   var resultDiv = document.getElementById('result');
   var reactionTimes = [];
+  var missedFlag = false; // ミスしたかどうかのフラグを追加
   
   document.getElementById('start-button').addEventListener('click', startTest);
   
@@ -34,42 +35,45 @@
     }, startDelay);
 
     function handleKeydown(e) {
-  if (colorChangeTime) {
-    var reactionTime;
-    if ((colorBox.style.backgroundColor == 'red' && e.key == 'ArrowLeft') || (colorBox.style.backgroundColor == 'blue' && e.key == 'ArrowDown')) {
-      reactionTime = new Date().getTime() - colorChangeTime;
-      reactionTimes.push(reactionTime);
-      colorChangeTime = null;
-      colorBox.style.backgroundColor = 'white';
-      
-      if (reactionTimes.length == 5) {
-        var sum = reactionTimes.reduce(function(a, b) { return a + b; }, 0);
-        var avg = sum / reactionTimes.length;
-        resultDiv.textContent = '平均反応時間：' + avg + 'ms';
-        reactionTimes = [];
-        $.ajax({
-          url: '/save_result',
-          method: 'POST',
-          data: {
-            reaction_time: avg
+      if (colorChangeTime) {
+        var reactionTime;
+        if ((colorBox.style.backgroundColor == 'red' && e.key == 'ArrowLeft') || (colorBox.style.backgroundColor == 'blue' && e.key == 'ArrowDown')) {
+          reactionTime = new Date().getTime() - colorChangeTime;
+          reactionTimes.push(reactionTime);
+          colorChangeTime = null;
+          colorBox.style.backgroundColor = 'white';
+        } else {
+          if (!missedFlag) { // ミスフラグが設定されていなければ100秒を加算
+            reactionTime = 100000;  // 100秒は100000ミリ秒に相当します。
+            reactionTimes.push(reactionTime);
+            resultDiv.textContent = '間違ったボタンを押しました！ 反応時間は100秒として計算します。';
+            missedFlag = true; // ミスフラグを設定
           }
-        });
+        }
+        if (reactionTimes.length == 5) {
+          var sum = reactionTimes.reduce(function(a, b) { return a + b; }, 0);
+          var avg = sum / reactionTimes.length;
+          resultDiv.textContent = '平均反応時間：' + avg + 'ms';
+          reactionTimes = [];
+          missedFlag = false; // テスト終了後、ミスフラグをリセット
+          $.ajax({
+            url: '/save_result',
+            method: 'POST',
+            data: {
+              reaction_time: avg
+            }
+          });
+        } else {
+          startTest();
+        }
       } else {
-        startTest();
+        resultDiv.textContent = 'まだ色が変わっていません！ キーを押すのは色が変わった後です。';
+        document.addEventListener('keydown', handleKeydown, { once: true });
       }
-    } else {
-      reactionTime = 1000;
-      resultDiv.textContent = '間違ったボタンを押しました！ 反応時間は1000msとして計算します。';
-      document.addEventListener('keydown', handleKeydown, { once: true });
     }
-  } else {
-    resultDiv.textContent = 'まだ色が変わっていません！ キーを押すのは色が変わった後です。';
+
     document.addEventListener('keydown', handleKeydown, { once: true });
   }
-}
 
-document.getElementById('start-button').addEventListener('click', startTest);
-document.addEventListener('keydown', handleKeydown, { once: true });
-
-  }
+  document.getElementById('start-button').addEventListener('click', startTest);
 </script>
