@@ -40,16 +40,16 @@
         if ((colorBox.style.backgroundColor == 'red' && e.key == 'ArrowLeft') || (colorBox.style.backgroundColor == 'blue' && e.key == 'ArrowDown')) {
           reactionTime = new Date().getTime() - colorChangeTime;
           reactionTimes.push(reactionTime);
-          colorChangeTime = null;
-          colorBox.style.backgroundColor = 'white';
         } else {
           if (!missedFlag) { // ミスフラグが設定されていなければ100秒を加算
             reactionTime = 100000;  // 100秒は100000ミリ秒に相当します。
             reactionTimes.push(reactionTime);
-            resultDiv.textContent = '間違ったボタンを押しました！ 反応時間は100秒として計算します。';
+            resultDiv.textContent = '間違ったボタンを押しました！ 反応時間に100秒加算した上で入力を無効とします。';
             missedFlag = true; // ミスフラグを設定
           }
         }
+        colorChangeTime = null;
+        colorBox.style.backgroundColor = 'white'; // 色を白に戻す
         if (reactionTimes.length == 5) {
           var sum = reactionTimes.reduce(function(a, b) { return a + b; }, 0);
           var avg = sum / reactionTimes.length;
